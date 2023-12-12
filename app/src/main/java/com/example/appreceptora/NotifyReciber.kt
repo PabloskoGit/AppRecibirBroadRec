@@ -14,40 +14,49 @@ class NotifyReciber : BroadcastReceiver() {
     private val idNotificacion = 101
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        intent?.let {
-            if (it.action == "com.appemisora.MOSTRAR_NOTIFICACION") {
-                createNotificationChannel(context)
-                handleSendText(it, context)
+        if (context != null){
+            intent?.let {
+                if (it.action == "com.appemisora.MOSTRAR_NOTIFICACION") {
+
+                    lanzarNotificacion(context, it, ID_CANAL)
+                }
             }
         }
     }
 
-    private fun handleSendText(intent: Intent, context: Context?) {
-        intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
-            val notification = NotificationCompat.Builder(context!!, ID_CANAL)
-                .setContentTitle("Notificacion de Texto")
-                .setContentText(text)
+    private fun lanzarNotificacion(context: Context, intent: Intent, idCanal: String) {
+        // Extraer el título y el contenido de la notificación del Intent
+        val titulo = intent.getStringExtra("titulo") ?: "Título por defecto"
+        val contenido = intent.getStringExtra(Intent.EXTRA_TEXT) ?: "Contenido por defecto"
+
+        // Crear el canal de notificación para Android 8.0 y superiores
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nombre = "Nombre del canal"
+            val descripcion = "Descripción del canal"
+            val importancia = NotificationManager.IMPORTANCE_DEFAULT
+            val canal = NotificationChannel(idCanal, nombre, importancia).apply {
+                description = descripcion
+            }
+            // Registrar el canal en el sistema
+            val notificationManager: NotificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(canal)
+
+            // Construir la notificación
+            val builder = NotificationCompat.Builder(context, idCanal)
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentTitle(titulo)
+                .setContentText(contenido)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build()
 
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(idNotificacion, notification)
+            // Lanzar la notificación
+            notificationManager.notify(idNotificacion, builder)
         }
+
+
     }
 
-    private fun createNotificationChannel(context: Context?) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "CANAL_1"
-            val descriptionText = "Descripción del canal"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(ID_CANAL, name, importance).apply {
-                description = descriptionText
-            }
-            val notificationManager =
-                context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
 }
+

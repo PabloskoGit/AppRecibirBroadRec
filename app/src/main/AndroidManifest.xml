@@ -16,6 +16,7 @@
 
         <receiver
             android:name=".NotifyReciber"
+            android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.appemisora.MOSTRAR_NOTIFICACION" />
